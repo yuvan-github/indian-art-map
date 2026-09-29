@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#7A1C22">
+<title>Indian Art Heritage Map</title>
+<meta name="description" content="An interactive map exploring the geographic spread and influence of Indian art styles — from Ajanta to Kerala murals.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪷</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hind:wght@400;500;600&family=Tiro+Devanagari+Hindi:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" onerror="this.onerror=null;this.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'">
+<style>
+:root{
+  --ivory:#F8F0E0;
+  --paper:#FFFAF0;
+  --sand:#EFE2C8;
+  --maroon:#7A1C22;
+  --maroon-deep:#561217;
+  --gold:#A9843A;
+  --gold-soft:#E6D3A3;
+  --ink:#2B1D16;
+  --ink-soft:#5E4A3D;
+  --line:rgba(122,28,34,.16);
+  --c-classical:#7A1C22;
+  --c-painting:#2F4A7A;
+  --c-folk:#A8462A;
+  --c-mughal:#1F6B64;
+  --c-textile:#6A3F7A;
+  --c-buddhist:#C9731A;
+  --serif:"Tiro Devanagari Hindi", "Noto Serif", Georgia, "Times New Roman", serif;
+  --sans:"Hind", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r-sm:6px; --r-md:12px; --r-lg:20px;
+  --nav-h:60px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ivory);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6;overflow-x:hidden}
+img{max-width:100%;display:block}
+a{color:var(--maroon)}
+button{font:inherit;color:inherit}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:400;line-height:1.15;margin:0}
+p{margin:0 0 1em}
+.wrap{width:100%;max-width:1180px;margin:0 auto;padding:0 20px}
+section{scroll-margin-top:calc(var(--nav-h) + 8px)}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:4px}
+
+/* ---------- Buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.5em;min-height:46px;padding:.6em 1.3em;border-radius:999px;border:1.5px solid var(--maroon);background:var(--maroon);color:var(--paper);font-weight:600;font-size:.95rem;letter-spacing:.02em;cursor:pointer;text-decoration:none;transition:background .2s,transform .15s,color .2s}
+.btn:active{transform:scale(.97)}
+.btn:hover{background:var(--maroon-deep)}
+.btn.ghost{background:transparent;color:var(--maroon)}
+.btn.ghost:hover{background:rgba(122,28,34,.07)}
+.btn.sm{min-height:40px;padding:.4em 1em;font-size:.88rem}
+
+/* ---------- Nav ---------- */
+.nav{position:sticky;top:0;z-index:1200;height:var(--nav-h);background:rgba(248,240,224,.94);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.nav .wrap{height:100%;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-family:var(--serif);font-size:1.12rem;white-space:nowrap}
+.brand svg{flex:none}
+.nav-links{display:flex;gap:4px;list-style:none;margin:0;padding:0}
+.nav-links a{display:block;padding:8px 12px;border-radius:999px;text-decoration:none;color:var(--ink-soft);font-weight:500;font-size:.95rem}
+.nav-links a.active,.nav-links a:hover{color:var(--maroon);background:rgba(122,28,34,.07)}
+.menu-btn{display:none;width:46px;height:46px;border-radius:50%;border:1px solid var(--line);background:var(--paper);cursor:pointer;align-items:center;justify-content:center}
+.menu-btn span{display:block;width:18px;height:2px;background:var(--maroon);position:relative;transition:background .2s}
+.menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:18px;height:2px;background:var(--maroon);transition:transform .25s}
+.menu-btn span::before{top:-6px}.menu-btn span::after{top:6px}
+.menu-btn[aria-expanded="true"] span{background:transparent}
+.menu-btn[aria-expanded="true"] span::before{transform:translateY(6px) rotate(45deg)}
+.menu-btn[aria-expanded="true"] span::after{transform:translateY(-6px) rotate(-45deg)}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden;padding:56px 0 64px;border-bottom:1px solid var(--line);background:
+  radial-gradient(circle at 85% 30%, rgba(169,132,58,.14), transparent 55%),
+  var(--ivory)}
+.hero .wrap{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:32px;align-items:center}
+.scripts{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0 0 22px;font-family:var(--serif);font-size:1.25rem;color:var(--maroon)}
+.scripts span[aria-hidden]{opacity:0;animation:rise .6s ease forwards}
+.scripts i{width:6px;height:6px;background:var(--gold);transform:rotate(45deg);display:inline-block}
+.hero h1{font-size:clamp(2.5rem,7.2vw,4.9rem);letter-spacing:-.01em;color:var(--ink)}
+.hero h1 .line2{display:block;color:var(--maroon)}
+.hero .subtitle{font-family:var(--serif);font-style:italic;font-size:clamp(1.12rem,2.6vw,1.45rem);color:var(--ink-soft);margin:16px 0 20px;max-width:34ch}
+.hero .intro{max-width:58ch;color:var(--ink-soft)}
+.hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.script-note{font-size:.82rem;color:var(--ink-soft);margin-top:18px}
+.kolam{width:100%;max-width:420px;justify-self:center;aspect-ratio:1}
+.kolam .k-line{fill:none;stroke:var(--maroon);stroke-width:2.2;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw 3.2s cubic-bezier(.6,.1,.3,1) .3s forwards}
+.kolam .k-outer{stroke:var(--gold);stroke-width:1.6;animation-delay:.9s}
+.kolam .k-dot{fill:var(--gold)}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ---------- Section headings ---------- */
+.sec{padding:64px 0}
+.sec-head{max-width:720px;margin-bottom:28px}
+.sec-head h2{font-size:clamp(1.9rem,4.6vw,2.8rem);color:var(--ink)}
+.sec-head p{color:var(--ink-soft);margin-top:12px}
+.rule{display:flex;align-items:center;gap:10px;margin:0 0 14px;color:var(--gold)}
+.rule::before,.rule::after{content:"";height:1px;width:34px;background:currentColor}
+.rule svg{width:14px;height:14px}
+
+/* ---------- Map section ---------- */
+.map-tools{display:grid;gap:14px;margin-bottom:16px}
+.search{position:relative;max-width:560px}
+.search input{width:100%;min-height:50px;padding:12px 44px 12px 46px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);font:inherit;font-size:1rem;color:var(--ink);-webkit-appearance:none;appearance:none}
+.search input:focus{outline:none;border-color:var(--maroon);box-shadow:0 0 0 3px rgba(122,28,34,.12)}
+.search input::-webkit-search-cancel-button{display:none}
+.search .s-icon{position:absolute;left:16px;top:50%;transform:translateY(-50%);width:20px;height:20px;color:var(--ink-soft);pointer-events:none}
+.search .s-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;border-radius:50%;background:transparent;cursor:pointer;color:var(--ink-soft);font-size:1.3rem;display:none}
+.search.has-q .s-clear{display:block}
+.results{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);box-shadow:0 14px 34px rgba(43,29,22,.16);list-style:none;margin:0;padding:6px;z-index:1100;max-height:320px;overflow:auto;display:none}
+.results.open{display:block}
+.results button{width:100%;text-align:left;display:flex;align-items:center;gap:10px;padding:10px 12px;border:0;background:transparent;border-radius:8px;cursor:pointer;min-height:48px}
+.results button:hover,.results button:focus{background:rgba(122,28,34,.07);outline:none}
+.results .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.results small{display:block;color:var(--ink-soft);font-size:.82rem;line-height:1.3}
+.results .empty{padding:12px;color:var(--ink-soft);font-size:.92rem}
+.filters{display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:40px;padding:6px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--paper);color:var(--ink-soft);font-size:.86rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.chip[aria-pressed="true"]{background:var(--maroon);border-color:var(--maroon);color:var(--paper)}
+.map-meta{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px;font-size:.92rem;color:var(--ink-soft)}
+.toggle{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 14px;border-radius:999px;border:1.5px dashed var(--gold);background:transparent;color:var(--ink);font-weight:500;cursor:pointer;font-size:.9rem}
+.toggle[aria-pressed="true"]{background:var(--gold-soft);border-style:solid}
+.map-frame{position:relative;border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--line);box-shadow:0 1px 0 var(--paper) inset,0 18px 40px -22px rgba(86,18,23,.45);background:var(--sand)}
+#map{height:clamp(420px,68vh,680px);width:100%;background:#EFE6D2}
+.map-fallback{display:none;padding:40px 24px;text-align:center;min-height:300px;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.map-fallback.show{display:flex}
+.map-fallback h3{font-size:1.4rem}
+.map-note{font-size:.8rem;color:var(--ink-soft);margin-top:10px}
+.leaflet-tile-pane{filter:sepia(.28) saturate(.85) hue-rotate(-6deg)}
+.leaflet-container{font-family:var(--sans)}
+.leaflet-control-attribution{font-size:10px}
+.leaflet-bar a{width:40px!important;height:40px!important;line-height:40px!important;color:var(--maroon)!important}
+
+.legend{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 18px;margin-top:18px;padding:16px 18px;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md)}
+.legend h3{grid-column:1/-1;font-size:1.1rem;margin-bottom:4px}
+.legend-item{display:flex;align-items:center;gap:10px;font-size:.92rem}
+.legend-item svg{width:24px;height:31px;flex:none}
+.legend-item.line svg{width:28px;height:12px}
+
+/* markers */
+.pin-icon{background:none;border:0}
+.pin-icon svg{width:34px;height:44px;filter:drop-shadow(0 3px 3px rgba(43,29,22,.35));transition:transform .2s;transform-origin:50% 100%}
+.pin-icon.active svg{transform:scale(1.18)}
+
+/* popup */
+.art-popup .leaflet-popup-content-wrapper{border-radius:16px;padding:0;overflow:hidden;background:var(--paper);box-shadow:0 18px 40px rgba(43,29,22,.28)}
+.art-popup .leaflet-popup-content{margin:0;width:min(300px,calc(100vw - 72px))!important;font-size:.9rem;line-height:1.5}
+.art-popup .leaflet-popup-tip{background:var(--paper)}
+.art-popup a.leaflet-popup-close-button{width:36px;height:36px;font-size:24px;line-height:34px;color:var(--paper);background:rgba(43,29,22,.5);border-radius:50%;top:8px;right:8px;z-index:3}
+.pop .art-img{height:104px}
+.pop-body{padding:12px 14px 14px}
+.pop-body h3{font-size:1.18rem;margin:6px 0 2px}
+.pop-loc{color:var(--ink-soft);margin:0;line-height:1.35}
+.pop-period{font-size:.8rem;color:var(--gold);font-weight:600;margin:2px 0 8px;line-height:1.3}
+.pop-scroll{max-height:min(24vh,170px);overflow:auto;border-top:1px solid var(--line);padding-top:8px;margin-bottom:10px;-webkit-overflow-scrolling:touch}
+.pop-scroll h4{font-family:var(--sans);font-weight:600;font-size:.82rem;color:var(--maroon);margin:8px 0 2px}
+.pop-scroll p,.pop-scroll ul{margin:0 0 4px}
+.pop-scroll ul{padding-left:18px}
+.pop .btn{width:100%}
+
+/* ---------- Art image + placeholder ---------- */
+.art-img{position:relative;overflow:hidden;background:var(--c,#7A1C22)}
+.art-img .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:rgba(255,250,240,.92);text-align:center;padding:12px;background:
+  radial-gradient(circle at 30% 20%, rgba(255,255,255,.14), transparent 50%),
+  repeating-linear-gradient(45deg, rgba(255,255,255,.05) 0 10px, transparent 10px 20px),var(--c,#7A1C22)}
+.art-img .ph svg{width:34px;height:34px;opacity:.9}
+.art-img .ph span{font-family:var(--serif);font-size:1rem;line-height:1.2}
+.art-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
+.art-img img.loaded{opacity:1}
+
+.cat-chip{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--c);background:color-mix(in srgb,var(--c) 11%,transparent);padding:3px 10px;border-radius:999px}
+.cat-chip::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+
+/* ---------- Cards ---------- */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;display:flex;flex-direction:column}
+.card .art-img{aspect-ratio:4/3}
+.card-body{padding:16px 18px 18px;display:flex;flex-direction:column;flex:1}
+.card h3{font-size:1.35rem;margin:10px 0 4px}
+.card .where{color:var(--ink-soft);font-size:.92rem;margin:0}
+.card .when{color:var(--gold);font-size:.86rem;font-weight:600;margin:2px 0 10px}
+.card .short{font-size:.95rem;color:var(--ink-soft);flex:1}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.card-actions .btn{flex:1}
+.card.extra{display:none}
+.cards.show-all .card.extra{display:flex}
+.more-wrap{text-align:center;margin-top:26px}
+
+/* ---------- Timeline ---------- */
+.timeline{position:relative;list-style:none;margin:0;padding:0 0 0 30px;max-width:860px}
+.timeline::before{content:"";position:absolute;left:9px;top:8px;bottom:8px;width:2px;background:linear-gradient(var(--gold),var(--maroon))}
+.tl-item{position:relative;padding:0 0 30px}
+.tl-item::before{content:"";position:absolute;left:-27px;top:8px;width:14px;height:14px;background:var(--paper);border:3px solid var(--maroon);transform:rotate(45deg)}
+.tl-item h3{font-size:1.5rem}
+.tl-dates{font-size:.88rem;font-weight:600;color:var(--gold);margin:2px 0 8px}
+.tl-item p{color:var(--ink-soft);max-width:68ch}
+.link-row{display:flex;flex-wrap:wrap;gap:6px}
+.goto{min-height:36px;padding:4px 12px;border-radius:999px;border:1px solid var(--line);background:var(--paper);font-size:.84rem;cursor:pointer;display:inline-flex;align-items:center;gap:6px;color:var(--ink)}
+.goto::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--c)}
+.goto:hover{border-color:var(--c)}
+
+/* ---------- Geographic spread ---------- */
+.spread{background:var(--paper);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.factors{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--line)}
+.factor{padding:22px 20px 22px 0;border-bottom:1px solid var(--line)}
+.factor:nth-child(3n+2),.factor:nth-child(3n+3){padding-left:20px;border-left:1px solid var(--line)}
+.factor h3{font-size:1.3rem;margin-bottom:6px;color:var(--maroon)}
+.factor p{font-size:.95rem;color:var(--ink-soft);margin-bottom:10px}
+.routes{margin-top:44px}
+.routes h3{font-size:1.6rem;margin-bottom:6px}
+.route-list{list-style:none;padding:0;margin:16px 0 0;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.route{padding:16px 18px;border-radius:var(--r-md);background:var(--ivory);border-left:3px solid var(--gold)}
+.route strong{font-family:var(--serif);font-weight:400;font-size:1.15rem;display:block;margin-bottom:4px}
+.route p{font-size:.94rem;color:var(--ink-soft);margin:0}
+
+/* ---------- Regions ---------- */
+.compass{display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-areas:". north ." "west central east" ". south .";gap:14px}
+.region{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);padding:18px;position:relative}
+.region h3{font-size:1.45rem;color:var(--maroon)}
+.region .dir{position:absolute;top:14px;right:16px;font-family:var(--serif);font-size:1.6rem;color:var(--gold-soft)}
+.region p{font-size:.93rem;color:var(--ink-soft);margin:6px 0 10px}
+.region .btn{margin-top:12px}
+.r-north{grid-area:north}.r-west{grid-area:west}.r-central{grid-area:central;background:var(--maroon);color:var(--paper);border-color:var(--maroon)}
+.r-central h3,.r-central p{color:var(--paper)}.r-central .dir{color:rgba(230,211,163,.5)}
+.r-central .goto{background:rgba(255,250,240,.12);color:var(--paper);border-color:rgba(255,250,240,.25)}
+.r-central .btn.ghost{color:var(--paper);border-color:var(--gold-soft)}
+.r-east{grid-area:east}.r-south{grid-area:south}
+.connect{max-width:760px;margin:30px auto 0;text-align:center;font-family:var(--serif);font-size:1.2rem;color:var(--ink-soft)}
+
+/* ---------- Stats ---------- */
+.stats{background:var(--maroon);color:var(--paper);padding:48px 0}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;text-align:center}
+.stat b{display:block;font-family:var(--serif);font-weight:400;font-size:clamp(2.2rem,6vw,3.4rem);color:var(--gold-soft);line-height:1}
+.stat span{display:block;margin-top:8px;font-size:.9rem;letter-spacing:.06em;text-transform:uppercase}
+.stats .note{text-align:center;font-size:.85rem;opacity:.8;margin:26px auto 0;max-width:60ch}
+
+/* ---------- Sources ---------- */
+.src-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+.src-grid h3{font-size:1.3rem;margin-bottom:10px}
+.src-list{list-style:none;padding:0;margin:0}
+.src-list li{padding:9px 0;border-bottom:1px solid var(--line);font-size:.94rem}
+.src-list a{font-weight:500;word-break:break-word}
+.src-list small{display:block;color:var(--ink-soft)}
+footer{padding:30px 0 40px;text-align:center;font-size:.88rem;color:var(--ink-soft);border-top:1px solid var(--line)}
+
+/* ---------- Modal ---------- */
+.modal{position:fixed;inset:0;z-index:2000;display:none;align-items:center;justify-content:center;padding:24px}
+.modal.open{display:flex}
+.modal-backdrop{position:absolute;inset:0;background:rgba(43,29,22,.62);animation:fade .25s ease}
+.modal-panel{position:relative;width:100%;max-width:860px;max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);overflow:auto;background:var(--paper);border-radius:var(--r-lg);box-shadow:0 30px 70px rgba(0,0,0,.35);animation:pop .3s cubic-bezier(.2,.8,.3,1);-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.modal-close{position:sticky;top:12px;float:right;margin:12px 12px -56px 0;z-index:5;width:44px;height:44px;border-radius:50%;border:0;background:rgba(43,29,22,.6);color:#fff;font-size:1.6rem;line-height:1;cursor:pointer}
+.modal .art-img{aspect-ratio:16/9;max-height:52vh}
+.m-credit{font-size:.78rem;color:var(--ink-soft);padding:8px 24px 0;margin:0}
+.m-body{padding:18px 28px 28px}
+.m-body h2{font-size:clamp(1.7rem,4.5vw,2.4rem);margin:10px 0 6px}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin:16px 0 20px}
+.facts div{background:var(--ivory);padding:10px 12px}
+.facts dt{font-size:.74rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em}
+.facts dd{margin:0;font-weight:600;font-size:.93rem;line-height:1.35}
+.m-sec{margin-bottom:18px}
+.m-sec h3{font-size:1.25rem;color:var(--maroon);margin-bottom:6px}
+.m-sec p{color:var(--ink);max-width:70ch}
+.m-sec ul{margin:0;padding-left:20px}
+.m-sec li{margin-bottom:4px}
+.m-actions{display:flex;flex-wrap:wrap;gap:10px;border-top:1px solid var(--line);padding-top:18px;margin-top:8px}
+.m-nav{margin-left:auto;display:flex;gap:8px}
+@keyframes fade{from{opacity:0}}
+@keyframes pop{from{opacity:0;transform:translateY(24px) scale(.98)}}
+body.lock{overflow:hidden}
+
+/* ---------- Responsive ---------- */
+@media (max-width:980px){
+  .cards{grid-template-columns:repeat(2,1fr)}
+  .factors{grid-template-columns:1fr 1fr}
+  .factor:nth-child(n){padding:20px 16px 20px 0;border-left:0}
+  .factor:nth-child(2n){padding-left:16px;border-left:1px solid var(--line)}
+}
+@media (max-width:860px){
+  .menu-btn{display:inline-flex}
+  .nav-links{position:absolute;top:var(--nav-h);left:0;right:0;flex-direction:column;background:var(--paper);border-bottom:1px solid var(--line);padding:8px 14px 14px;box-shadow:0 16px 30px rgba(43,29,22,.12);display:none}
+  .nav-links.open{display:flex}
+  .nav-links a{padding:13px 14px;font-size:1.02rem;border-radius:10px}
+  .hero .wrap{grid-template-columns:1fr}
+  .kolam{position:absolute;right:-90px;top:-40px;width:300px;opacity:.28;pointer-events:none}
+  .compass{grid-template-columns:1fr 1fr;grid-template-areas:"north north" "west east" "central central" "south south"}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:28px 14px}
+  .src-grid{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr 1fr}
+  .route-list{grid-template-columns:1fr}
+}
+@media (max-width:600px){
+  body{font-size:16px}
+  .wrap{padding:0 16px}
+  .sec{padding:48px 0}
+  .hero{padding:40px 0 48px}
+  .scripts{font-size:1.08rem;gap:4px 10px}
+  .cards{grid-template-columns:1fr}
+  .factors{grid-template-columns:1fr}
+  .factor:nth-child(n){padding:18px 0;border-left:0}
+  .compass{grid-template-columns:1fr;grid-template-areas:"north" "west" "central" "east" "south"}
+  .brand .long{display:none}
+  #map{height:clamp(440px,74vh,620px)}
+  .pop .art-img{height:84px}
+  .pop-body{padding:10px 12px 12px}
+  .pop-body h3{font-size:1.08rem}
+  .pop-scroll{max-height:min(20vh,120px)}
+  .chip{font-size:.78rem;padding:6px 12px}
+  .modal{padding:0;align-items:flex-end}
+  .modal-panel{max-height:94vh;max-height:94dvh;border-radius:20px 20px 0 0;animation:sheet .32s cubic-bezier(.2,.8,.3,1)}
+  .m-body{padding:14px 18px 24px}
+  .m-credit{padding:8px 18px 0}
+  .m-nav{margin-left:0;width:100%}
+  .m-nav .btn,.m-actions>.btn{flex:1}
+  .legend{grid-template-columns:1fr 1fr;padding:14px}
+  .legend-item{font-size:.84rem}
+}
+@media (min-width:601px){.brand .short{display:none}}
+@keyframes sheet{from{transform:translateY(40px);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .kolam .k-line{stroke-dashoffset:0}
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#home" aria-label="Indian Art Heritage Map — home">
+      <svg width="30" height="30" viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="8" width="24" height="24" rx="7" transform="rotate(45 20 20)" fill="none" stroke="#7A1C22" stroke-width="2.4"/><circle cx="20" cy="20" r="3.2" fill="#A9843A"/><circle cx="20" cy="6" r="1.8" fill="#A9843A"/><circle cx="20" cy="34" r="1.8" fill="#A9843A"/><circle cx="6" cy="20" r="1.8" fill="#A9843A"/><circle cx="34" cy="20" r="1.8" fill="#A9843A"/></svg>
+      <span class="long">Indian Art Heritage Map</span><span class="short">Art Heritage Map</span>
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks"><span></span></button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#map-section">Map</a></li>
+      <li><a href="#traditions">Traditions</a></li>
+      <li><a href="#timeline">Timeline</a></li>
+      <li><a href="#spread">Geography</a></li>
+      <li><a href="#regions">Regions</a></li>
+      <li><a href="#sources">Sources</a></li>
+    </ul>
+  </div>
+</header>
+
+<main>
+<!-- ============ HERO ============ -->
+<section class="hero" id="home">
+  <div class="wrap">
+    <div>
+      <p class="scripts" id="scripts"><span class="sr-only">The word “art” in eight Indian languages</span></p>
+      <h1>Indian Art<span class="line2">Heritage Map</span></h1>
+      <p class="subtitle">Exploring the Geographic Spread and Influence of Indian Art Styles</p>
+      <p class="intro">India’s artistic heritage did not grow in one place. It developed region by region — shaped by religion, royal courts, temples and monasteries, local communities, trade routes, the materials each landscape offered, and the historical period in which it flourished. This map follows fifteen of those traditions to the places where they took root.</p>
+      <div class="hero-actions">
+        <a class="btn" href="#map-section" id="exploreBtn">EXPLORE THE MAP ↓</a>
+        <a class="btn ghost" href="#spread">How geography shaped art</a>
+      </div>
+      <p class="script-note">Above: “art” in Hindi, Tamil, Bengali, Odia, Telugu, Kannada, Malayalam and Gujarati.</p>
+    </div>
+    <svg class="kolam" id="kolam" viewBox="-200 -200 400 400" aria-hidden="true"></svg>
+  </div>
+</section>
+
+<!-- ============ MAP ============ -->
+<section class="sec" id="map-section">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rule"><svg viewBox="0 0 14 14"><path d="M7 0l7 7-7 7-7-7z" fill="currentColor"/></svg></div>
+      <h2>The interactive map</h2>
+      <p>Tap a marker to open its story. Search by place, state, tradition or artist, or narrow the map by category.</p>
+    </div>
+
+    <div class="map-tools">
+      <div class="search" id="searchBox">
+        <svg class="s-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <label for="q" class="sr-only">Search locations, states, traditions or artists</label>
+        <input id="q" type="search" autocomplete="off" placeholder="Search “Madhubani”, “Rajasthan”, “Nainsukh”…" aria-controls="results">
+        <button class="s-clear" id="clearQ" type="button" aria-label="Clear search">×</button>
+        <ul class="results" id="results" role="listbox" aria-label="Search results"></ul>
+      </div>
+      <div class="filters" id="filters" role="group" aria-label="Filter by category"></div>
+      <div class="map-meta">
+        <span id="count" aria-live="polite">Showing 15 of 15 locations</span>
+        <button class="toggle" id="routesToggle" aria-pressed="false">
+          <svg width="22" height="10" viewBox="0 0 22 10" aria-hidden="true"><path d="M1 8 Q11 -4 21 8" fill="none" stroke="#A9843A" stroke-width="2" stroke-dasharray="3 3"/></svg>
+          Show influence links
+        </button>
+      </div>
+    </div>
+
+    <div class="map-frame">
+      <div id="map" role="region" aria-label="Map of India with art heritage locations"></div>
+      <div class="map-fallback" id="mapFallback">
+        <h3>The map could not load</h3>
+        <p>The mapping library or map tiles did not load — usually a slow or blocked connection. Reload the page to try again. Every location is still available in the cards below.</p>
+        <a class="btn sm" href="#traditions">Browse the traditions</a>
+      </div>
+    </div>
+    <p class="map-note">Base map © OpenStreetMap contributors © CARTO. Map boundaries are shown for general reference only and are not authoritative.</p>
+
+    <div class="legend" id="legend"><h3>Legend</h3></div>
+  </div>
+</section>
+
+<!-- ============ CARDS ============ -->
+<section class="sec" id="traditions" style="padding-top:8px">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rule"><svg viewBox="0 0 14 14"><path d="M7 0l7 7-7 7-7-7z" fill="currentColor"/></svg></div>
+      <h2>Explore India’s Art Traditions</h2>
+      <p>Ten traditions to start with. Each card links back to its place on the map.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="more-wrap"><button class="btn ghost" id="moreBtn" aria-expanded="false">Show all 15 traditions</button></div>
+  </div>
+</section>
+
+<!-- ============ TIMELINE ============ -->
+<section class="sec" id="timeline" style="background:var(--sand)">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rule"><svg viewBox="0 0 14 14"><path d="M7 0l7 7-7 7-7-7z" fill="currentColor"/></svg></div>
+      <h2>A timeline of Indian art</h2>
+      <p>Seven broad periods. Dates are approximate and periods overlap — regional kingdoms flourished alongside the Mughals. Tap a tradition to find it on the map.</p>
+    </div>
+    <ol class="timeline" id="tl"></ol>
+  </div>
+</section>
+
+<!-- ============ GEOGRAPHIC SPREAD ============ -->
+<section class="sec spread" id="spread">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rule"><svg viewBox="0 0 14 14"><path d="M7 0l7 7-7 7-7-7z" fill="currentColor"/></svg></div>
+      <h2>Geographic Spread of Indian Art</h2>
+      <p>Why does Warli painting look so different from a Kangra miniature, or Khajuraho from Thanjavur? Because each tradition answered to a particular place: who ruled it, what people believed, which communities lived there, what the land provided and who passed through. These nine forces explain most of the variety on the map.</p>
+    </div>
+    <div class="factors" id="factors"></div>
+
+    <div class="routes">
+      <h3>How influence travelled</h3>
+      <p style="color:var(--ink-soft);max-width:68ch">Traditions were distinct but not isolated. Artists moved when courts rose and fell, and later generations looked back to older sites. These four documented connections are drawn on the map when you switch on influence links.</p>
+      <ul class="route-list" id="routeList"></ul>
+      <div style="margin-top:18px"><button class="btn sm" id="routesBtn2">Show these links on the map</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REGIONS ============ -->
+<section class="sec" id="regions">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rule"><svg viewBox="0 0 14 14"><path d="M7 0l7 7-7 7-7-7z" fill="currentColor"/></svg></div>
+      <h2>North, South, East, West and Central India</h2>
+      <p>The five regions below are arranged roughly as they sit on the map. Tap “Show on map” to zoom to a region’s traditions.</p>
+    </div>
+    <div class="compass" id="compass"></div>
+    <p class="connect">These traditions are geographically distinct, yet connected — through pilgrimage, the movement of artists between courts, shared epics like the Ramayana and Mahabharata, and trade across land and sea.</p>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section class="stats" aria-label="Project scope">
+  <div class="wrap">
+    <div class="stat-grid" id="stats"></div>
+    <p class="note">These figures describe the scope of this project, not the total number of Indian art traditions — which runs into the hundreds.</p>
+  </div>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<section class="sec" id="sources">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="rule"><svg viewBox="0 0 14 14"><path d="M7 0l7 7-7 7-7-7z" fill="currentColor"/></svg></div>
+      <h2>Sources &amp; References</h2>
+      <p>Content was compiled from the institutions and reference works below. Images load live from Wikipedia/Wikimedia Commons (freely licensed files only); each image’s credit links to its file page with licence details.</p>
+    </div>
+    <div class="src-grid">
+      <div>
+        <h3>Institutions</h3>
+        <ul class="src-list">
+          <li><a href="https://asi.nic.in/" target="_blank" rel="noopener">Archaeological Survey of India</a><small>Protected monuments incl. Ajanta, Khajuraho, Hampi, Delhi monuments</small></li>
+          <li><a href="https://www.indiaculture.gov.in/" target="_blank" rel="noopener">Ministry of Culture, Government of India</a></li>
+          <li><a href="https://www.nationalmuseumindia.gov.in/" target="_blank" rel="noopener">National Museum, New Delhi</a><small>Miniature painting, Chola bronzes, Buddhist art</small></li>
+          <li><a href="https://ngmaindia.gov.in/" target="_blank" rel="noopener">National Gallery of Modern Art</a><small>Bengal School and modern Indian art</small></li>
+          <li><a href="https://ignca.gov.in/" target="_blank" rel="noopener">Indira Gandhi National Centre for the Arts</a></li>
+          <li><a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a><small>Openly licensed images used on this site</small></li>
+        </ul>
+        <h3 style="margin-top:24px">UNESCO World Heritage listings</h3>
+        <ul class="src-list">
+          <li><a href="https://whc.unesco.org/en/list/242" target="_blank" rel="noopener">Ajanta Caves</a></li>
+          <li><a href="https://whc.unesco.org/en/list/240" target="_blank" rel="noopener">Khajuraho Group of Monuments</a></li>
+          <li><a href="https://whc.unesco.org/en/list/241" target="_blank" rel="noopener">Group of Monuments at Hampi</a></li>
+          <li><a href="https://whc.unesco.org/en/list/250" target="_blank" rel="noopener">Great Living Chola Temples</a></li>
+          <li><a href="https://whc.unesco.org/en/list/232" target="_blank" rel="noopener">Humayun’s Tomb, Delhi</a></li>
+          <li><a href="https://whc.unesco.org/en/list/233" target="_blank" rel="noopener">Qutb Minar and its Monuments, Delhi</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Reference articles for each location</h3>
+        <ul class="src-list" id="wikiSources"></ul>
+        <h3 style="margin-top:24px">Technology</h3>
+        <ul class="src-list">
+          <li><a href="https://leafletjs.com/" target="_blank" rel="noopener">Leaflet.js</a><small>Open-source interactive map library</small></li>
+          <li><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> and <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a><small>Map data and base-map tiles</small></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">Indian Art Heritage Map · Indian Arts coursework (CO1) · Built with HTML, CSS, JavaScript and Leaflet.js</div>
+</footer>
+
+<!-- ============ MODAL ============ -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-panel" role="dialog" aria-modal="true" aria-labelledby="mTitle" tabindex="-1" id="modalPanel">
+    <button class="modal-close" data-close aria-label="Close details">×</button>
+    <div id="mContent"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js" onerror="window.__leafletCdnFailed=true"></script>
+<script>
+(function(){
+"use strict";
+
+/* =========================================================
+   DATA
+   ========================================================= */
+var G = { // marker glyphs, drawn in a 16x16 box
+  classical:'<path d="M8 .5l2.6 4.2h-1l2 3.6h-1l2.2 4.2H3.2l2.2-4.2h-1l2-3.6h-1z"/><rect x="2" y="13.2" width="12" height="2.2" rx=".5"/>',
+  painting:'<path d="M14.6 1.4c-1.1-1-5.8 3.6-8.2 7l1.7 1.7c3.4-2.4 8-7.1 6.5-8.7z"/><path d="M5.6 9.7c-1.6 0-2.8 1.2-2.8 2.7 0 .9-.6 1.6-1.6 1.9 2.8 1.4 6.1.6 6.1-2.4z"/>',
+  folk:'<circle cx="8" cy="2.4" r="1.9"/><path d="M4 4.8h8L8 8.4z"/><path d="M8 8.4l4 3.9H4z"/><path d="M5 6 2 8.8M11 6l3 2.8M6 12.3 5 15.4M10 12.3l1 3.1" stroke="#FFFAF0" stroke-width="1.3" fill="none" stroke-linecap="round"/>',
+  mughal:'<path fill-rule="evenodd" d="M8 .6c.4 1 1.2 1.6 1.2 2.4 3.2.9 4.8 3.5 4.8 6.6V15.4H2V9.6c0-3.1 1.6-5.7 4.8-6.6 0-.8.8-1.4 1.2-2.4zM6 15.4v-3a2 2 0 0 1 4 0v3z"/>',
+  textile:'<path fill-rule="evenodd" d="M8 .6l7.4 7.4L8 15.4.6 8zM8 4.3 11.7 8 8 11.7 4.3 8z"/><circle cx="8" cy="8" r="1.5"/>',
+  buddhist:'<rect x="7.3" y=".4" width="1.4" height="3.2"/><rect x="5.6" y="3.4" width="4.8" height="1.6" rx=".3"/><path d="M1.8 12.6a6.2 6.2 0 0 1 12.4 0z"/><rect x="1" y="12.9" width="14" height="2.5" rx=".4"/>'
+};
+var CATS = {
+  classical:{label:"Classical & Temple Art", color:"#7A1C22"},
+  painting:{label:"Painting Traditions", color:"#2F4A7A"},
+  folk:{label:"Folk & Tribal Art", color:"#A8462A"},
+  mughal:{label:"Mughal / Indo-Islamic", color:"#1F6B64"},
+  textile:{label:"Textile & Decorative Arts", color:"#6A3F7A"},
+  buddhist:{label:"Buddhist Art", color:"#C9731A"}
+};
+var FILTERS = [
+  ["all","All"],["classical","Classical"],["folk","Folk & Tribal"],["miniature","Miniature"],
+  ["temple","Temple Art"],["mughal","Mughal / Indo-Islamic"],["textile","Textile & Decorative"],["buddhist","Buddhist"]
+];
+
+var PLACES = [
+{
+  id:"ajanta", cat:"buddhist", tags:["buddhist","classical"], featured:true,
+  place:"Ajanta Caves", state:"Maharashtra", region:"West", coords:[20.5519,75.7033],
+  tradition:"Buddhist Cave Painting & Sculpture",
+  period:"c. 2nd century BCE – 5th century CE",
+  wiki:["Ajanta Caves"],
+  short:"Around thirty rock-cut Buddhist caves whose murals are among the finest surviving examples of ancient Indian painting.",
+  context:"About 30 rock-cut Buddhist caves carved into a horseshoe-shaped cliff above the Waghora river, made in two phases: around the 2nd–1st century BCE, and in the 5th century CE during the Vakataka period.",
+  examples:["Padmapani and Vajrapani Bodhisattva paintings (Cave 1)","Jataka tale murals — stories of the Buddha’s previous lives","Chaitya (prayer) halls of Caves 19 and 26, with the great reclining Buddha in Cave 26","Painted ceilings with floral, animal and geometric motifs"],
+  significance:"A UNESCO World Heritage Site (1983) and a benchmark for classical Indian painting: fluid outlines, modelled figures and expressive hands and faces.",
+  why:"A secluded monastic retreat in the Sahyadri hills, within reach of ancient Deccan trade routes. The volcanic basalt cliff could be carved into large halls and monasteries.",
+  details:["The caves were made as viharas (monasteries) and chaityas (prayer halls) for Buddhist monks, funded by kings, officials and merchants. An inscription in Cave 16 records its dedication by Varahadeva, a minister of the Vakataka king Harishena.","The murals were painted on a plaster of clay mixed with organic material, finished with a thin lime layer and coloured with mineral pigments. After centuries of disuse the caves came to wider attention in 1819, when a British officer, John Smith, noticed them during a hunt."],
+  influence:"Ajanta is often compared with later Buddhist murals across Asia. In the early 20th century, copies of its paintings made by Christiana Herringham’s team — with Nandalal Bose among the artists — helped inspire the Bengal School in Calcutta.",
+  people:["Harishena (Vakataka king)","Varahadeva","Nandalal Bose (copied the murals)"],
+  keys:"fresco mural jataka vakataka bodhisattva padmapani aurangabad chhatrapati sambhajinagar buddha cave rock-cut"
+},
+{
+  id:"warli", cat:"folk", tags:["folk"], featured:true,
+  place:"Dahanu–Jawhar, Palghar district", state:"Maharashtra", region:"West", coords:[19.9707,72.7327],
+  tradition:"Warli Painting",
+  period:"Traditional; widely known since the 1970s",
+  wiki:["Warli painting","Warli"],
+  short:"Adivasi wall painting built from circles, triangles and squares, painted in white on earth-coloured walls.",
+  context:"Painted by the Warli Adivasi community living north of Mumbai. Traditionally women painted it on mud walls for weddings and harvests, using white rice paste on a red-ochre or dung-plastered surface.",
+  examples:["The wedding chauk — a sacred square with the mother goddess Palaghata","The tarpa dance: figures spiralling around a musician playing the tarpa","Scenes of sowing, harvest, hunting and village life","Canvases by Jivya Soma Mashe"],
+  significance:"A complete visual language made from basic shapes. Jivya Soma Mashe (Padma Shri, 2011) carried it from village walls to national and international exhibitions.",
+  why:"Its imagery comes straight from the Warli homeland — rice fields, forests, animals and community gatherings in the Palghar region. (The tradition belongs to these villages, not to Mumbai city.)",
+  details:["Human figures are two triangles joined at the tip, with a circle for the head. The circle recalls the sun and moon, the triangle mountains and trees, and the square a sacred enclosure.","Paintings were made for rituals rather than display. From the 1970s, artists began working on paper and canvas, which brought wider recognition and new income."],
+  influence:"Warli motifs are now used on fabric, murals and product design across India — which has also raised questions about credit and fair benefit for the community.",
+  people:["Jivya Soma Mashe"],
+  keys:"warli adivasi tribal tarpa palghat palaghata dahanu jawhar mumbai maharashtra rice paste"
+},
+{
+  id:"mata", cat:"textile", tags:["textile","folk"], featured:false,
+  place:"Ahmedabad", state:"Gujarat", region:"West", coords:[23.0225,72.5714],
+  tradition:"Mata ni Pachedi",
+  period:"Traditional; practised for several centuries",
+  wiki:["Mata ni Pachedi"],
+  short:"A hand-painted and printed cloth shrine to the mother goddess, made by the Devipujak (Vaghri) community.",
+  context:"‘Mata ni Pachedi’ means ‘behind the mother goddess’. The Devipujak community, historically kept out of many temples, created portable cloth shrines showing the goddess surrounded by devotees and stories.",
+  examples:["A central goddess figure framed like a shrine","Narrative panels of devotees, animals and rituals","Outlines drawn with a bamboo kalam, with block-printed borders","A traditional palette of red-maroon, black and white"],
+  significance:"The cloth itself works as a temple — a clear example of devotional art created by a marginalised community on its own terms.",
+  why:"Ahmedabad’s long textile and dyeing culture supported the process, and the cloth was traditionally washed in the Sabarmati river between dyeing stages.",
+  details:["Black comes from iron rust fermented with jaggery; red from natural dye fixed with an alum mordant. The cloth is painted, dyed, washed and dried in repeated stages.","The craft is kept alive by a small number of families of the Chitara/Devipujak community, some of whose works are now held in museums."],
+  influence:"It belongs to the wider Indian family of mordant-dyed painted cloths, alongside kalamkari, and connects ritual practice with Gujarat’s textile economy.",
+  people:["Chitara family"],
+  keys:"mata ni pachedi vaghri devipujak chitara goddess cloth shrine textile ahmedabad gujarat kalam"
+},
+{
+  id:"jaipur", cat:"painting", tags:["painting","miniature"], featured:true,
+  place:"Jaipur", state:"Rajasthan", region:"North", coords:[26.9124,75.7873],
+  tradition:"Rajasthani Miniature Painting",
+  period:"c. 16th – 19th century",
+  wiki:["Rajput painting","Bani Thani"],
+  short:"Small, jewel-like paintings from the Rajput courts, each princely state with its own recognisable style.",
+  context:"Rajput courts across Rajasthan — Mewar, Marwar, Bundi, Kota, Kishangarh, Bikaner and Amber–Jaipur — ran workshops that produced detailed paintings on paper with mineral and plant pigments and very fine brushes.",
+  examples:["Bani Thani by Nihal Chand (Kishangarh, mid-18th century)","Ragamala series — paintings of musical modes","Krishna legends, the Gita Govinda and the Rasikapriya","Court scenes, hunts and royal portraits (Mewar, Kota)"],
+  significance:"Shows how neighbouring states developed distinct styles while sharing themes of devotion, poetry and court life.",
+  why:"Jaipur, founded in 1727 by Sawai Jai Singh II, and the older court at Amber were major centres of patronage; the city is still a hub for miniature painters.",
+  details:["Rajasthani painting is known for bold, flat colour, strong outlines and stylised faces. Each school has its own signature: Kishangarh’s elongated eyes and profiles, Bundi and Kota’s lush landscapes and hunts, Mewar’s narrative series.","Alliances with the Mughal court from Akbar’s time brought portraiture and naturalistic detail into Rajput workshops, which adapted them to their own devotional and courtly themes."],
+  influence:"Rajput and Mughal painting influenced each other through political alliances and the movement of artists between courts.",
+  people:["Nihal Chand","Sahibdin (Mewar)","Sawai Jai Singh II (patron)"],
+  keys:"rajput rajasthani miniature mewar marwar bundi kota kishangarh bani thani ragamala jaipur amber rajasthan"
+},
+{
+  id:"delhi", cat:"mughal", tags:["mughal","miniature"], featured:true,
+  place:"Delhi", state:"Delhi (NCT)", region:"North", coords:[28.5933,77.2507],
+  tradition:"Mughal & Indo-Islamic Art",
+  period:"c. 13th – 19th century",
+  wiki:["Humayun's Tomb","Mughal painting","Qutb Minar"],
+  short:"Architecture, calligraphy and painting that blended Persian, Central Asian and Indian traditions.",
+  context:"Under the Delhi Sultanate and then the Mughals, Delhi became a centre of Indo-Islamic art, combining Persian and Central Asian forms with Indian craftsmanship in architecture, inlay, calligraphy and painting.",
+  examples:["Qutb Minar (begun c. 1199)","Humayun’s Tomb (completed c. 1570), an early Mughal garden tomb","Red Fort, built under Shah Jahan (1639–1648)","Mughal miniature painting, e.g. the Hamzanama made in Akbar’s workshop"],
+  significance:"Humayun’s Tomb, the Qutb Minar complex and the Red Fort Complex are all UNESCO World Heritage Sites.",
+  why:"As a long-standing imperial capital, Delhi concentrated royal patronage, skilled artisans and materials such as red sandstone and white marble.",
+  details:["Akbar’s imperial workshop was led by the Persian masters Mir Sayyid Ali and Abd al-Samad, who trained Indian painters such as Basawan and Daswanth. Jahangir preferred portraits and nature studies, like the bird and animal paintings of Ustad Mansur.","In architecture, Humayun’s Tomb introduced the large Persian-style garden tomb to India — a model that culminated in the Taj Mahal at Agra. Shah Jahan also built a new walled city at Delhi, Shahjahanabad, with the Red Fort at its centre."],
+  influence:"When the Mughal court weakened in the 18th century, artists moved to Rajput and Pahari courts and to regional centres such as Lucknow and Murshidabad, spreading Mughal naturalism across North India.",
+  people:["Akbar","Jahangir","Shah Jahan","Mir Sayyid Ali","Abd al-Samad","Basawan","Daswanth","Ustad Mansur"],
+  keys:"mughal indo-islamic sultanate qutb minar humayun tomb red fort shah jahan akbar hamzanama persian delhi architecture"
+},
+{
+  id:"kangra", cat:"painting", tags:["painting","miniature"], featured:false,
+  place:"Kangra", state:"Himachal Pradesh", region:"North", coords:[32.0998,76.2691],
+  tradition:"Pahari (Kangra) Miniature Painting",
+  period:"c. late 17th – 19th century",
+  wiki:["Kangra painting","Pahari painting"],
+  short:"Lyrical hill-court paintings of Radha and Krishna set in soft, green Himalayan landscapes.",
+  context:"Pahari (‘of the hills’) painting flourished in small hill states such as Basohli, Guler, Kangra, Chamba and Mandi. The Kangra style — delicate line, soft colour, poetic landscape — peaked under Raja Sansar Chand (r. 1775–1823).",
+  examples:["Gita Govinda series (c. 1775–1780)","Bhagavata Purana series","Nayika (heroine) paintings based on Hindi poetry","Portraits by Nainsukh of Guler for Raja Balwant Singh of Jasrota"],
+  significance:"Regarded as one of the most refined and poetic schools of Indian miniature painting.",
+  why:"The Kangra valley’s rivers, hills and flowering trees appear throughout the paintings, and the hill courts gave artists steady patronage.",
+  details:["The earlier Basohli style (late 17th century) used bold colour and intense expressions. In the 18th century, a family of painters from Guler — Pandit Seu and his sons Manaku and Nainsukh — developed a gentler, naturalistic manner that became the Kangra style.","Favourite themes were the love of Radha and Krishna, the seasons, and idealised heroines, painted with fine brushes on paper."],
+  influence:"Mughal-style naturalism reached the hills as artists moved there in the 18th century; the Guler family’s descendants then carried the style to other hill states.",
+  people:["Nainsukh","Manaku","Pandit Seu","Purkhu","Raja Sansar Chand (patron)"],
+  keys:"pahari kangra guler basohli chamba mandi nainsukh manaku gita govinda radha krishna himachal miniature"
+},
+{
+  id:"madhubani", cat:"folk", tags:["folk","painting"], featured:true,
+  place:"Madhubani", state:"Bihar", region:"East", coords:[26.3483,86.0712],
+  tradition:"Madhubani (Mithila) Painting",
+  period:"Traditional; on paper since the late 1960s",
+  wiki:["Madhubani art","Madhubani painting"],
+  short:"Densely patterned paintings by the women of Mithila, first made on walls for weddings and rituals.",
+  context:"Practised mainly by women of the Mithila region of Bihar and neighbouring Nepal, originally on freshly plastered mud walls and floors for weddings, festivals and household rituals.",
+  examples:["Kohbar paintings for the marriage chamber","Ramayana scenes, Krishna and local deities","Bharni (filled colour), Kachni (line), Tantrik, Godna and Gobar styles","Works by Jagdamba Devi, Sita Devi, Ganga Devi, Mahasundari Devi and Baua Devi"],
+  significance:"A domestic ritual art that became a nationally recognised form while keeping its community roots; several of its artists have received the Padma Shri.",
+  why:"It grew from Mithila’s household rituals and women’s knowledge. After the 1934 Bihar earthquake exposed painted interior walls, the British officer W. G. Archer documented them.",
+  details:["Paintings fill every space with pattern — fish, birds, the sun and moon, lotus and bamboo — using natural colours such as lampblack and turmeric.","During the drought of the late 1960s, the All India Handicrafts Board encouraged women to paint on paper so the work could be sold. This moved the art from walls into homes, galleries and museums."],
+  influence:"Now practised across Bihar and beyond, and used in public art such as painted railway coaches and station walls in the state.",
+  people:["Jagdamba Devi","Sita Devi","Ganga Devi","Mahasundari Devi","Baua Devi","W. G. Archer (documented it)"],
+  keys:"madhubani mithila bihar kohbar bharni kachni tantrik godna women ritual wall painting nepal"
+},
+{
+  id:"kalighat", cat:"painting", tags:["painting","folk"], featured:false,
+  place:"Kalighat, Kolkata", state:"West Bengal", region:"East", coords:[22.5205,88.3426],
+  tradition:"Kalighat Painting",
+  period:"c. early 19th – early 20th century",
+  wiki:["Kalighat painting"],
+  short:"Bold, quick watercolours made for pilgrims — and sharp satire of city life in colonial Calcutta.",
+  context:"Rural patuas (scroll painters) settled near the Kalighat Kali temple and made fast, affordable paintings on mill-made paper for pilgrims and townspeople.",
+  examples:["Kali, Durga and other deities","Scenes from the Ramayana and Krishna stories","Satires of the fashionable ‘babu’ and city manners","Paintings of the Tarakeswar scandal (1873)"],
+  significance:"One of the first Indian art forms to respond to urban life and mass demand, with confident, simplified outlines.",
+  why:"Calcutta was the capital of British India. Pilgrims, a new urban middle class, and cheap paper and watercolours created a market that shaped the style.",
+  details:["Painters worked quickly with sweeping brush lines and flat washes, often in family workshops where tasks were shared.","Alongside gods and epics, they recorded contemporary events and social change, making the paintings an early form of popular commentary."],
+  influence:"Its bold outlines influenced modern artists such as Jamini Roy. Large collections are held by museums including the Victoria and Albert Museum, London.",
+  people:["Jamini Roy (influenced by it)"],
+  keys:"kalighat kolkata calcutta bengal patua babu satire kali temple jamini roy colonial watercolour"
+},
+{
+  id:"pattachitra", cat:"painting", tags:["painting","folk","temple"], featured:true,
+  place:"Raghurajpur, near Puri", state:"Odisha", region:"East", coords:[19.8983,85.8796],
+  tradition:"Odisha Pattachitra",
+  period:"Centuries-old temple tradition, still practised",
+  wiki:["Pattachitra","Raghurajpur"],
+  short:"Finely detailed cloth paintings closely tied to the Jagannath temple at Puri.",
+  context:"Painted by chitrakar families on cloth (‘patta’) stiffened with a coating of chalk and tamarind-seed gum, using natural colours and fine brushes.",
+  examples:["Anasara pati — images of Jagannath, Balabhadra and Subhadra used in temple ritual","Paintings of the Jagannath temple and the Rath Yatra","Krishna Lila and Dasavatara themes","Talapatra chitra — palm-leaf etching made in the same village"],
+  significance:"A living devotional art directly connected to temple ritual in Puri.",
+  why:"Raghurajpur, a heritage crafts village near Puri, is home to generations of chitrakars; the Jagannath temple sustains both the demand and the themes.",
+  details:["Each year, after the bathing festival of Snana Purnima, the deities of Puri are withdrawn from public view for about two weeks (Anasara). Painted pattas are worshipped in their place.","Colours were traditionally prepared from natural sources such as conch shell for white and lamp soot for black, and the finished cloth is often lacquered for protection."],
+  influence:"Related to the scroll-painting (pat) traditions of Bengal; its imagery has spread with the Jagannath cult across eastern India.",
+  people:["Chitrakar families of Raghurajpur"],
+  keys:"pattachitra patachitra odisha orissa puri raghurajpur jagannath chitrakar anasara palm leaf talapatra cloth"
+},
+{
+  id:"khajuraho", cat:"classical", tags:["classical","temple"], featured:true,
+  place:"Khajuraho", state:"Madhya Pradesh", region:"Central", coords:[24.8318,79.9199],
+  tradition:"Chandela Temple Architecture & Sculpture",
+  period:"c. 950 – 1050 CE",
+  wiki:["Kandariya Mahadeva Temple","Khajuraho Group of Monuments"],
+  short:"Hindu and Jain temples covered in finely carved sculpture, rising like mountain peaks.",
+  context:"Built by the Chandela dynasty. Of roughly 85 temples once standing, about 25 survive, belonging to both Hindu and Jain traditions.",
+  examples:["Kandariya Mahadeva Temple (c. 1025–1050)","Lakshmana Temple (completed c. 954)","Parshvanatha Temple, Eastern (Jain) group","Surasundari — celestial maiden figures"],
+  significance:"A UNESCO World Heritage Site (1986) and a high point of the North Indian Nagara style, with clustered spires (shikharas) that echo mountain peaks.",
+  why:"The Chandela kings made it a ceremonial centre, and the local fine-grained sandstone allowed deep, intricate carving.",
+  details:["The sculpture shows deities, musicians, dancers, warriors, animals and scenes of everyday life. The well-known erotic panels form only a small part of the whole programme.","Temples stand on high platforms with a sequence of halls leading to the sanctum, while the roofline rises step by step to the main spire."],
+  influence:"Represents the mature Nagara temple style that shaped temple building across northern and central India.",
+  people:["Chandela dynasty (patrons)"],
+  keys:"khajuraho chandela nagara temple sculpture kandariya lakshmana jain madhya pradesh sandstone shikhara"
+},
+{
+  id:"gond", cat:"folk", tags:["folk"], featured:true,
+  place:"Bhopal (Bharat Bhavan)", state:"Madhya Pradesh", region:"Central", coords:[23.2336,77.3950],
+  tradition:"Gond Art",
+  period:"Traditional roots; contemporary form since the 1980s",
+  wiki:["Gond art","Gond painting","Jangarh Singh Shyam"],
+  short:"Vivid paintings of trees, animals and myth, filled with dots and fine lines — a tribal tradition turned contemporary art.",
+  context:"The Gonds are among India’s largest Adivasi communities. Artists of the Pardhan Gond community from Patangarh village (Dindori district) transformed ritual wall and floor designs into a contemporary painting practice.",
+  examples:["Paintings by Jangarh Singh Shyam, pioneer of the style","Bhajju Shyam’s The London Jungle Book (2004)","Illustrated books by Durga Bai Vyam","Trees, animals and deities filled with dots, dashes and fine lines"],
+  significance:"Brought Adivasi mythology and ecology into museums and galleries while remaining recognisably Gond.",
+  why:"In the early 1980s the artist J. Swaminathan brought the young Jangarh Singh Shyam to Bharat Bhavan in Bhopal, which became the centre where the style developed.",
+  details:["Gond painting draws on songs and stories — the Pardhans were traditionally bards to the Gonds — and on the forests of central India.","Each artist developed a personal ‘signature’ pattern of dots, lines or dashes used to fill forms, making individual styles easy to recognise."],
+  influence:"Now practised by a large community of artists in Bhopal and beyond, exhibited internationally and widely used in publishing.",
+  people:["Jangarh Singh Shyam","Bhajju Shyam","Durga Bai Vyam","Venkat Raman Singh Shyam","J. Swaminathan"],
+  keys:"gond pardhan patangarh dindori bhopal bharat bhavan jangarh singh shyam bhajju durga bai tribal adivasi madhya pradesh"
+},
+{
+  id:"hampi", cat:"classical", tags:["classical","temple"], featured:false,
+  place:"Hampi", state:"Karnataka", region:"South", coords:[15.3350,76.4620],
+  tradition:"Vijayanagara Architecture & Sculpture",
+  period:"c. 14th – 16th century (1336–1565)",
+  wiki:["Vittala Temple","Group of Monuments at Hampi","Hampi"],
+  short:"The ruined capital of the Vijayanagara Empire, set among granite boulders on the Tungabhadra river.",
+  context:"Capital of the Vijayanagara Empire. Its temples, bazaars and royal buildings combine South Indian Dravida traditions with courtly and Indo-Islamic features.",
+  examples:["The stone chariot shrine at the Vittala temple","Virupaksha temple, still in active worship","Ramayana reliefs on the Hazara Rama temple","Lotus Mahal, with Indo-Islamic arches"],
+  significance:"A UNESCO World Heritage Site (1986) that shows the scale and ambition of South Indian royal patronage.",
+  why:"The granite landscape supplied building stone, and the river’s sacred associations — linked with Pampa and Kishkindha of the Ramayana — made it a pilgrimage centre.",
+  details:["The empire reached its height under Krishnadevaraya (r. 1509–1529). Vijayanagara temples added towering gateways (gopurams) and pillared halls carved with rearing yalis and musicians; the Vittala temple’s pillars are famous for producing musical tones.","After the empire’s defeat at the Battle of Talikota in 1565, the city was sacked and abandoned."],
+  influence:"Its gateway towers and pillared halls influenced temple building across South India, and its successor Nayaka courts, such as Thanjavur and Madurai, continued its patronage.",
+  people:["Krishnadevaraya (patron)"],
+  keys:"hampi vijayanagara karnataka vittala virupaksha hazara rama lotus mahal krishnadevaraya tungabhadra dravida"
+},
+{
+  id:"thanjavur", cat:"classical", tags:["classical","temple","painting"], featured:true,
+  place:"Thanjavur", state:"Tamil Nadu", region:"South", coords:[10.7828,79.1318],
+  tradition:"Chola Art & Tanjore Painting",
+  period:"Chola: c. 9th–13th c.; Tanjore painting: c. 17th–19th c.",
+  wiki:["Thanjavur painting","Brihadisvara Temple, Thanjavur"],
+  short:"Home of the great Chola temple and bronzes — and later, of gold-leaf Tanjore painting.",
+  context:"Rajaraja Chola I completed the Brihadisvara temple in 1010 CE. Chola patronage produced monumental architecture, murals and bronze sculpture; centuries later, under Nayaka and Maratha rulers, Thanjavur developed its own painting style.",
+  examples:["Brihadisvara (Peruvudaiyar) temple and its towering vimana","Chola murals in the temple’s inner passage","Chola bronzes such as the Nataraja, cast by the lost-wax method","Tanjore paintings with gold foil and raised gesso work"],
+  significance:"Part of the UNESCO ‘Great Living Chola Temples’ site; Chola bronzes are among the most admired sculptures in the world.",
+  why:"The fertile Kaveri delta supported wealthy kingdoms and temple economies for centuries; nearby Swamimalai still continues the bronze-casting tradition.",
+  details:["Chola bronzes were made by the lost-wax process: a wax model is covered in clay, the wax melted out and molten metal poured in. The Nataraja, Shiva as the cosmic dancer, is their most famous image.","Tanjore painting flourished especially under the Maratha ruler Serfoji II (r. 1798–1832). Painted on a wooden board with cloth, it uses raised chalk-paste relief, gold foil and coloured glass or stones, usually for Krishna and other devotional subjects."],
+  influence:"Chola influence reached Sri Lanka and Southeast Asia through military and trade links; the related Mysore painting style developed in Karnataka.",
+  people:["Rajaraja Chola I (patron)","Serfoji II (patron)"],
+  keys:"thanjavur tanjore chola brihadisvara brihadeeswarar bronze nataraja lost wax swamimalai gold foil tamil nadu kaveri serfoji rajaraja"
+},
+{
+  id:"kalamkari", cat:"textile", tags:["textile"], featured:true,
+  place:"Srikalahasti", state:"Andhra Pradesh", region:"South", coords:[13.7496,79.6984],
+  tradition:"Kalamkari",
+  period:"Medieval roots; flourished c. 16th – 18th century",
+  wiki:["Kalamkari"],
+  short:"Pen-painted and block-printed cotton dyed with plant colours — from temple storytelling to global trade.",
+  context:"‘Kalamkari’ means pen-work. In Srikalahasti, artists draw freehand with a bamboo kalam and dye with natural colours; on the coast at Machilipatnam a block-printed style developed.",
+  examples:["Temple cloths narrating the Ramayana and Mahabharata (Srikalahasti)","Block-printed floral and tree-of-life designs (Machilipatnam)","Painted ‘chintz’ exported from the Coromandel Coast","Natural dyes from indigo, madder, pomegranate rind and myrobalan"],
+  significance:"Shows temple storytelling, natural dye knowledge and international trade combined in one craft.",
+  why:"The Srikalahasti temple gave narrative patronage; the Coromandel ports connected Machilipatnam textiles — patronised by the Golconda sultans of the Hyderabad region — to Persia and Europe.",
+  details:["Srikalahasti kalamkari is made through many stages of treating, drawing, dyeing and washing the cloth — traditionally in the Swarnamukhi river.","The Machilipatnam style used carved wooden blocks and developed Persian-inspired motifs for export markets."],
+  influence:"Indian painted and printed cottons became highly fashionable in Europe in the 17th–18th centuries and influenced European textile design.",
+  people:["Golconda (Qutb Shahi) patrons"],
+  keys:"kalamkari srikalahasti machilipatnam andhra telangana hyderabad golconda chintz textile block print natural dye coromandel"
+},
+{
+  id:"kerala", cat:"classical", tags:["classical","temple","painting"], featured:false,
+  place:"Mattancherry, Kochi", state:"Kerala", region:"South", coords:[9.9580,76.2594],
+  tradition:"Kerala Mural Painting",
+  period:"Mainly c. 15th – 19th century",
+  wiki:["Kerala mural painting","Mattancherry Palace"],
+  short:"Richly ornamented temple and palace murals in warm ochres, reds and greens.",
+  context:"Painted on the walls of temples and palaces using natural pigments in a traditional palette known as pancha varna (five colours), following conventions from texts on image-making.",
+  examples:["Ramayana murals at Mattancherry Palace, Kochi","Gajendra Moksha mural at Krishnapuram Palace, Kayamkulam","Murals at Padmanabhapuram Palace (Travancore)","Temple murals such as the Nataraja at Ettumanoor"],
+  significance:"A distinct South Indian mural style with stylised figures, elaborate ornaments and strong yellow-ochre, red and green.",
+  why:"Kerala’s temples and the palaces of the Kochi and Travancore rulers provided walls and patronage; local minerals and plants supplied the colours.",
+  details:["Figures are outlined and then filled with colour, with faces, crowns and jewellery treated in great detail. The palette follows fixed symbolic conventions for different kinds of figures.","The tradition declined in the colonial period and has been revived through training institutions and temple commissions."],
+  influence:"Revived through institutions such as the Guruvayur Devaswom’s Institute of Mural Painting and now widely used in contemporary decoration.",
+  people:["Kochi and Travancore rulers (patrons)"],
+  keys:"kerala mural pancha varna mattancherry dutch palace kochi cochin krishnapuram padmanabhapuram ettumanoor guruvayur temple"
+}
+];
+
+var TIMELINE = [
+  {era:"Ancient India", dates:"c. 2500 BCE – 2nd century BCE", text:"Harappan cities produced seals, terracottas and small bronzes such as the ‘Dancing Girl’ of Mohenjo-daro. Under the Mauryas (3rd century BCE), polished stone pillars like the Lion Capital of Sarnath — now India’s national emblem — introduced monumental stone sculpture. The earliest Buddhist rock-cut halls, including the first caves at Ajanta, followed.", links:["ajanta"]},
+  {era:"Classical period", dates:"c. 1st century BCE – 6th century CE", text:"The Kushan-era Gandhara and Mathura schools shaped early images of the Buddha, and the Gupta period set lasting ideals of balanced, graceful form. Ajanta’s second phase in the 5th century CE produced its most celebrated paintings.", links:["ajanta"]},
+  {era:"Medieval India", dates:"c. 7th – 13th century", text:"Temple building matured into the northern Nagara and southern Dravida styles. The Chandelas built Khajuraho; the Cholas raised the Brihadisvara temple and cast bronzes like the Nataraja; the Jagannath temple at Puri became the centre of Odisha’s painting culture; and the Delhi Sultanate began Indo-Islamic architecture with the Qutb Minar.", links:["khajuraho","thanjavur","pattachitra","delhi"]},
+  {era:"Mughal era", dates:"1526 – 1857 (artistic peak in the 16th–17th centuries)", text:"Akbar’s imperial workshop brought Persian and Indian painters together to create manuscripts like the Hamzanama. Jahangir favoured portraits and nature studies; Shah Jahan’s reign is remembered for the Taj Mahal and the Red Fort. Mughal naturalism later spread to Rajput and Pahari courts.", links:["delhi","jaipur","kangra"]},
+  {era:"Regional kingdoms", dates:"c. 14th – 19th century (overlapping the Mughal era)", text:"Regional powers developed their own styles: Vijayanagara at Hampi, the Rajput courts of Rajasthan, the Pahari hill states, the Golconda sultans (patrons of Machilipatnam kalamkari), and the Nayaka and Maratha rulers of Thanjavur. Kerala’s temples and palaces were painted with murals.", links:["hampi","jaipur","kangra","kalamkari","thanjavur","kerala"]},
+  {era:"Colonial period", dates:"c. mid-18th century – 1947", text:"Company painting served European patrons, Kalighat painters adapted to Calcutta’s mass market, and Raja Ravi Varma combined Indian subjects with European oil technique. The Bengal School, led by Abanindranath Tagore, looked back to Ajanta and Mughal art to build a national style. Madhubani wall paintings were documented after the 1934 earthquake.", links:["kalighat","ajanta","madhubani"]},
+  {era:"Modern India", dates:"1947 – present", text:"The Progressive Artists’ Group (Bombay, 1947) pushed Indian modernism forward, while folk and tribal traditions entered galleries: Madhubani on paper from the late 1960s, Warli through Jivya Soma Mashe, and Gond art through Jangarh Singh Shyam at Bharat Bhavan, Bhopal. Geographical Indication (GI) tags now protect many regional crafts.", links:["madhubani","warli","gond","mata"]}
+];
+
+var FACTORS = [
+  {t:"Religion", d:"Faith supplied subjects and purpose: Buddhist Jataka stories at Ajanta, Krishna legends in Kangra and Rajasthan, the Jagannath cult in Odisha, the mother goddess in Mata ni Pachedi.", l:["ajanta","kangra","pattachitra","mata"]},
+  {t:"Royal patronage", d:"Courts paid for workshops and set styles: Mughal emperors in Delhi, Rajput rulers in Rajasthan, Raja Sansar Chand in Kangra, Serfoji II in Thanjavur.", l:["delhi","jaipur","kangra","thanjavur"]},
+  {t:"Temples", d:"Temples were centres of sculpture, painting and ritual objects — Khajuraho, Hampi and Thanjavur, and the painted walls of Kerala.", l:["khajuraho","hampi","thanjavur","kerala"]},
+  {t:"Buddhist institutions", d:"Monasteries and their donors created rock-cut halls and murals. Ajanta was a monastic retreat supported by kings, officials and merchants.", l:["ajanta"]},
+  {t:"Local communities", d:"Many traditions belong to specific communities: Warli and Gond Adivasi painters, the women of Mithila, the Devipujak makers of Mata ni Pachedi, the chitrakars of Raghurajpur.", l:["warli","gond","madhubani","mata","pattachitra"]},
+  {t:"Trade routes", d:"Ports and roads carried art and ideas. Coromandel kalamkari reached Persia and Europe; Ajanta lay within reach of Deccan trade routes; Chola influence crossed the Bay of Bengal.", l:["kalamkari","ajanta","thanjavur"]},
+  {t:"Natural materials", d:"Local materials shaped style: sandstone at Khajuraho, granite at Hampi, basalt cliffs at Ajanta, rice paste on mud walls in Warli art, plant and mineral colours in kalamkari and Kerala murals.", l:["khajuraho","hampi","ajanta","warli","kalamkari","kerala"]},
+  {t:"Regional kingdoms", d:"Each political centre produced a distinct school — Vijayanagara, Chola, Chandela, Rajput and Pahari states each developed a visual identity.", l:["hampi","thanjavur","khajuraho","jaipur","kangra"]},
+  {t:"Cultural exchange", d:"Styles met and mixed: Persian and Indian painters in Mughal workshops, Indo-Islamic arches at Hampi’s Lotus Mahal, and new paper and paints in colonial Calcutta.", l:["delhi","hampi","kalighat"]}
+];
+
+var ROUTES = [
+  {from:"delhi", to:"jaipur", title:"Delhi → Rajasthan", text:"Alliances with the Mughal court brought portraiture and naturalistic detail into Rajput painting workshops."},
+  {from:"delhi", to:"kangra", title:"Delhi → Kangra", text:"In the 18th century, artists working in a Mughal-influenced naturalistic manner moved to the Pahari hill courts."},
+  {from:"hampi", to:"thanjavur", title:"Hampi → Thanjavur", text:"Thanjavur’s Nayaka rulers began as Vijayanagara governors and continued its artistic patronage after Hampi fell in 1565."},
+  {from:"ajanta", to:"kalighat", title:"Ajanta → Kolkata", text:"Early 20th-century copies of the Ajanta murals, made with Nandalal Bose’s help, inspired the Bengal School in Calcutta."}
+];
+
+var REGIONS = [
+  {key:"north", name:"North India", dir:"N", text:"Imperial capitals and hill courts: Indo-Islamic architecture and the miniature traditions of the Rajput and Pahari courts.", ids:["delhi","jaipur","kangra"]},
+  {key:"west", name:"West India", dir:"W", text:"Rock-cut Buddhist caves of the Deccan, Adivasi wall painting and devotional textiles.", ids:["ajanta","warli","mata"]},
+  {key:"central", name:"Central India", dir:"C", text:"Chandela temple sculpture and the contemporary flowering of Gond painting.", ids:["khajuraho","gond"]},
+  {key:"east", name:"East India", dir:"E", text:"River-plain and coastal traditions of ritual and narrative painting.", ids:["madhubani","kalighat","pattachitra"]},
+  {key:"south", name:"South India", dir:"S", text:"Temple kingdoms, Chola bronzes, gold-leaf painting, murals and natural-dye textiles.", ids:["hampi","thanjavur","kalamkari","kerala"]}
+];
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+var byId = {}; PLACES.forEach(function(p){ byId[p.id]=p; });
+function $(s,r){return (r||document).querySelector(s);}
+function $$(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s));}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function color(p){return CATS[p.cat].color;}
+function glyphSVG(cat,size){return '<svg viewBox="0 0 16 16" width="'+(size||16)+'" height="'+(size||16)+'" fill="currentColor" aria-hidden="true">'+G[cat]+'</svg>';}
+function pinSVG(cat){
+  var c=CATS[cat].color;
+  return '<svg viewBox="0 0 34 44" aria-hidden="true"><path d="M17 42.5S3.5 27 3.5 16.5a13.5 13.5 0 1 1 27 0C30.5 27 17 42.5 17 42.5z" fill="'+c+'" stroke="#FFFAF0" stroke-width="2.4"/><g transform="translate(9 8.5)" fill="#FFFAF0">'+G[cat]+'</g></svg>';
+}
+function catChip(p){return '<span class="cat-chip" style="--c:'+color(p)+'">'+esc(CATS[p.cat].label)+'</span>';}
+function imgBox(p,cls){
+  return '<div class="art-img '+(cls||"")+'" data-img="'+p.id+'" style="--c:'+color(p)+'"><div class="ph">'+glyphSVG(p.cat,34)+'<span>'+esc(p.tradition)+'</span></div></div>';
+}
+function gotoBtn(id){var p=byId[id]; if(!p) return ""; return '<button class="goto" data-goto="'+id+'" style="--c:'+color(p)+'">'+esc(p.tradition)+'</button>';}
+function wikiUrl(t){return "https://en.wikipedia.org/wiki/"+encodeURIComponent(t.replace(/ /g,"_"));}
+
+/* =========================================================
+   IMAGES (Wikipedia page images — free licences only)
+   ========================================================= */
+var IMG = {}; // id -> {src, file, article}
+function loadImages(){
+  if(!window.fetch) return;
+  var titles=[]; PLACES.forEach(function(p){p.wiki.forEach(function(t){ if(titles.indexOf(t)<0) titles.push(t); });});
+  var url="https://en.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*&redirects=1&prop=pageimages&piprop=thumbnail%7Cname&pithumbsize=900&pilimit=50&titles="+encodeURIComponent(titles.join("|"));
+  var ctrl = window.AbortController ? new AbortController() : null;
+  var timer = setTimeout(function(){ if(ctrl) ctrl.abort(); }, 9000);
+  fetch(url, ctrl?{signal:ctrl.signal}:{}).then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+  .then(function(data){
+    clearTimeout(timer);
+    var q=data && data.query; if(!q || !q.pages) return;
+    var map={}; (q.normalized||[]).forEach(function(n){map[n.from]=n.to;}); (q.redirects||[]).forEach(function(n){map[n.from]=n.to;});
+    var pages={}; q.pages.forEach(function(pg){ pages[pg.title]=pg; });
+    function resolve(t){ var seen=0; while(map[t] && seen<5){ t=map[t]; seen++; } return pages[t]; }
+    PLACES.forEach(function(p){
+      for(var i=0;i<p.wiki.length;i++){
+        var pg=resolve(p.wiki[i]);
+        if(pg && pg.thumbnail && pg.thumbnail.source){
+          IMG[p.id]={src:pg.thumbnail.source, file:pg.pageimage||"", article:pg.title};
+          break;
+        }
+      }
+    });
+    applyImages(document);
+  }).catch(function(){ clearTimeout(timer); /* placeholders stay — layout unaffected */ });
+}
+function applyImages(root){
+  $$("[data-img]",root).forEach(function(box){
+    var info=IMG[box.getAttribute("data-img")];
+    if(!info || box.querySelector("img")) return;
+    var p=byId[box.getAttribute("data-img")];
+    var im=new Image();
+    im.alt="Representative image for "+p.tradition+", "+p.place;
+    im.decoding="async";
+    im.onload=function(){ im.classList.add("loaded"); };
+    im.onerror=function(){ if(im.parentNode) im.parentNode.removeChild(im); };
+    im.src=info.src;
+    box.appendChild(im);
+  });
+  $$("[data-credit]",root).forEach(function(el){
+    var info=IMG[el.getAttribute("data-credit")];
+    if(!info){ el.textContent="Illustration placeholder — image unavailable."; return; }
+    var fileLink = info.file ? ' · <a href="https://en.wikipedia.org/wiki/File:'+encodeURIComponent(info.file)+'" target="_blank" rel="noopener">image credit &amp; licence</a>' : "";
+    el.innerHTML='Representative image from the Wikipedia article “<a href="'+wikiUrl(info.article)+'" target="_blank" rel="noopener">'+esc(info.article)+'</a>” (Wikimedia Commons)'+fileLink;
+  });
+}
+
+/* =========================================================
+   HERO: scripts + kolam
+   ========================================================= */
+(function hero(){
+  var words=["कला","கலை","শিল্প","କଳା","కళ","ಕಲೆ","കല","કલા"];
+  var box=$("#scripts"), html="";
+  words.forEach(function(w,i){ html+=(i?'<i aria-hidden="true"></i>':"")+'<span aria-hidden="true" style="animation-delay:'+(i*90)+'ms">'+w+'</span>'; });
+  box.insertAdjacentHTML("beforeend",html);
+
+  // Kolam-inspired lattice: dots on a diamond grid, looped by rounded diamonds
+  var svg=$("#kolam"), s=46, out="", dots="";
+  for(var x=-3;x<=3;x++) for(var y=-3;y<=3;y++){
+    if(Math.abs(x)+Math.abs(y)>3) continue;
+    var cx=(x-y)*s/2*1.0, cy=(x+y)*s/2*1.0;
+    dots+='<circle class="k-dot" cx="'+cx.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="3.2"/>';
+    if(Math.abs(x)+Math.abs(y)<=2){
+      var r=s*0.62;
+      out+='M'+(cx)+' '+(cy-r)+' Q'+(cx+r*0.18)+' '+(cy-r*0.18)+' '+(cx+r)+' '+cy+' Q'+(cx+r*0.18)+' '+(cy+r*0.18)+' '+cx+' '+(cy+r)+' Q'+(cx-r*0.18)+' '+(cy+r*0.18)+' '+(cx-r)+' '+cy+' Q'+(cx-r*0.18)+' '+(cy-r*0.18)+' '+cx+' '+(cy-r)+'Z ';
+    }
+  }
+  var R=178;
+  var outer='M0 '+(-R)+' C60 -110 110 -60 '+R+' 0 C110 60 60 110 0 '+R+' C-60 110 -110 60 '+(-R)+' 0 C-110 -60 -60 -110 0 '+(-R)+'Z';
+  svg.innerHTML='<path class="k-line k-outer" pathLength="1" d="'+outer+'"/><path class="k-line" pathLength="1" d="'+out+'"/>'+dots;
+})();
+
+/* =========================================================
+   NAV
+   ========================================================= */
+(function nav(){
+  var btn=$("#menuBtn"), links=$("#navLinks");
+  btn.addEventListener("click",function(){
+    var open=btn.getAttribute("aria-expanded")!=="true";
+    btn.setAttribute("aria-expanded",open); btn.setAttribute("aria-label",open?"Close menu":"Open menu");
+    links.classList.toggle("open",open);
+  });
+  $$("a",links).forEach(function(a){ a.addEventListener("click",function(){ btn.setAttribute("aria-expanded","false"); links.classList.remove("open"); }); });
+  document.addEventListener("click",function(e){ if(!e.target.closest(".nav")){ btn.setAttribute("aria-expanded","false"); links.classList.remove("open"); } });
+  if("IntersectionObserver" in window){
+    var io=new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ $$("a",links).forEach(function(a){ a.classList.toggle("active", a.getAttribute("href")==="#"+en.target.id); }); } });
+    },{rootMargin:"-45% 0px -50% 0px"});
+    ["map-section","traditions","timeline","spread","regions","sources"].forEach(function(id){ var el=document.getElementById(id); if(el) io.observe(el); });
+  }
+})();
+
+/* =========================================================
+   MAP
+   ========================================================= */
+var map=null, markers={}, markerLayer=null, routeLayer=null, routesOn=false;
+var state={filter:"all", q:""};
+
+function popupHTML(p){
+  return '<div class="pop">'+imgBox(p)+
+  '<div class="pop-body">'+catChip(p)+
+  '<h3>'+esc(p.tradition)+'</h3>'+
+  '<p class="pop-loc">'+esc(p.place)+', '+esc(p.state)+'</p>'+
+  '<p class="pop-period">'+esc(p.period)+'</p>'+
+  '<div class="pop-scroll">'+
+    '<h4>Historical context</h4><p>'+esc(p.context)+'</p>'+
+    '<h4>Important examples</h4><ul>'+p.examples.slice(0,3).map(function(e){return '<li>'+esc(e)+'</li>';}).join("")+'</ul>'+
+    '<h4>Cultural significance</h4><p>'+esc(p.significance)+'</p>'+
+    '<h4>Why this location matters</h4><p>'+esc(p.why)+'</p>'+
+  '</div>'+
+  '<button class="btn sm" data-detail="'+p.id+'">VIEW DETAILS</button>'+
+  '</div></div>';
+}
+
+function ensureLeaflet(){
+  return new Promise(function(resolve){
+    if(window.L) return resolve(true);
+    var s=document.createElement("script");
+    s.src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    s.onload=function(){ resolve(!!window.L); };
+    s.onerror=function(){ resolve(false); };
+    document.head.appendChild(s);
+    setTimeout(function(){ resolve(!!window.L); }, 10000);
+  });
+}
+
+function showMapFallback(){
+  $("#map").style.display="none";
+  $("#mapFallback").classList.add("show");
+  $("#routesToggle").style.display="none";
+}
+
+function initMap(){
+  try{
+    map=L.map("map",{minZoom:4,maxZoom:13,zoomSnap:.5,scrollWheelZoom:false,maxBounds:[[-12,45],[52,118]],attributionControl:true});
+    var tiles=L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{
+      subdomains:"abcd",maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    });
+    var tileErrors=0, swapped=false;
+    tiles.on("tileerror",function(){
+      tileErrors++;
+      if(tileErrors>6 && !swapped){
+        swapped=true; map.removeLayer(tiles);
+        L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+      }
+    });
+    tiles.addTo(map);
+    map.on("click",function(){ map.scrollWheelZoom.enable(); });
+    map.getContainer().addEventListener("mouseleave",function(){ map.scrollWheelZoom.disable(); });
+
+    markerLayer=L.layerGroup().addTo(map);
+    PLACES.forEach(function(p){
+      var icon=L.divIcon({className:"pin-icon",html:pinSVG(p.cat),iconSize:[34,44],iconAnchor:[17,43],popupAnchor:[0,-40]});
+      var m=L.marker(p.coords,{icon:icon,title:p.tradition+" — "+p.place,alt:p.tradition,keyboard:true,riseOnHover:true});
+      m.bindPopup(function(){ return popupHTML(p); },{className:"art-popup",maxWidth:320,minWidth:200,autoPanPadding:[16,16],closeButton:true});
+      m.on("popupopen",function(e){
+        applyImages(e.popup.getElement());
+        var el=m.getElement(); if(el) el.classList.add("active");
+        keepPopupInView(e.popup);
+      });
+      m.on("popupclose",function(){ var el=m.getElement(); if(el) el.classList.remove("active"); });
+      markers[p.id]=m;
+    });
+
+    // Influence routes as gentle arcs
+    routeLayer=L.layerGroup();
+    ROUTES.forEach(function(r){
+      var a=byId[r.from].coords, b=byId[r.to].coords, pts=[];
+      var mx=(a[0]+b[0])/2, my=(a[1]+b[1])/2, dx=b[0]-a[0], dy=b[1]-a[1];
+      var cx=mx - dy*0.18, cy=my + dx*0.18;
+      for(var t=0;t<=1.0001;t+=0.05){
+        pts.push([(1-t)*(1-t)*a[0]+2*(1-t)*t*cx+t*t*b[0],(1-t)*(1-t)*a[1]+2*(1-t)*t*cy+t*t*b[1]]);
+      }
+      var line=L.polyline(pts,{color:"#A9843A",weight:3,opacity:.95,dashArray:"7 7",lineCap:"round"});
+      line.bindPopup('<div style="padding:12px 14px;max-width:240px"><strong style="font-family:var(--serif);font-weight:400;font-size:1.1rem">'+esc(r.title)+'</strong><p style="margin:6px 0 0">'+esc(r.text)+'</p></div>',{className:"art-popup"});
+      routeLayer.addLayer(L.polyline(pts,{color:"#FFFAF0",weight:7,opacity:.8}));
+      routeLayer.addLayer(line);
+    });
+
+    applyFilters(false);
+    fitVisible(false);
+    setTimeout(function(){ map.invalidateSize(); },300);
+    window.addEventListener("load",function(){ map.invalidateSize(); });
+    return true;
+  }catch(err){
+    console.error(err); showMapFallback(); return false;
+  }
+}
+
+function keepPopupInView(popup){
+  // Extra safeguard for small screens: nudge the map so the whole popup is visible
+  setTimeout(function(){
+    var pe=popup.getElement(); if(!pe || !map) return;
+    var pr=pe.getBoundingClientRect(), mr=map.getContainer().getBoundingClientRect(), pad=12, dx=0, dy=0;
+    if(pr.top<mr.top+pad) dy=pr.top-(mr.top+pad);
+    else if(pr.bottom>mr.bottom-pad) dy=pr.bottom-(mr.bottom-pad);
+    if(pr.left<mr.left+pad) dx=pr.left-(mr.left+pad);
+    else if(pr.right>mr.right-pad) dx=pr.right-(mr.right-pad);
+    if(dx||dy) map.panBy([dx,dy],{animate:true,duration:.35});
+  },60);
+}
+
+function visiblePlaces(){
+  var q=state.q.trim().toLowerCase();
+  return PLACES.filter(function(p){
+    var okCat = state.filter==="all" || p.tags.indexOf(state.filter)>=0;
+    if(!okCat) return false;
+    if(!q) return true;
+    var hay=(p.place+" "+p.state+" "+p.region+" "+p.tradition+" "+p.period+" "+p.people.join(" ")+" "+p.keys+" "+CATS[p.cat].label).toLowerCase();
+    return q.split(/\s+/).every(function(w){ return hay.indexOf(w)>=0; });
+  });
+}
+
+function applyFilters(fit){
+  var vis=visiblePlaces(), ids={};
+  vis.forEach(function(p){ ids[p.id]=1; });
+  if(map){
+    PLACES.forEach(function(p){
+      var m=markers[p.id];
+      if(ids[p.id]){ if(!markerLayer.hasLayer(m)) markerLayer.addLayer(m); }
+      else if(markerLayer.hasLayer(m)){ m.closePopup(); markerLayer.removeLayer(m); }
+    });
+    if(fit) fitVisible(true);
+  }
+  $("#count").textContent = vis.length ? ("Showing "+vis.length+" of "+PLACES.length+" locations") : "No locations match — try another word or choose All";
+  renderResults(vis);
+  return vis;
+}
+
+function fitVisible(animate){
+  if(!map) return;
+  var vis=visiblePlaces();
+  if(!vis.length) return;
+  if(vis.length===1){ map.setView(vis[0].coords,7,{animate:animate}); return; }
+  map.fitBounds(L.latLngBounds(vis.map(function(p){return p.coords;})),{padding:[40,40],maxZoom:7,animate:animate});
+}
+
+/* ---------- search ---------- */
+var qInput=$("#q"), resultsEl=$("#results"), searchBox=$("#searchBox"), qTimer=null;
+function renderResults(vis){
+  if(!state.q.trim()){ resultsEl.classList.remove("open"); resultsEl.innerHTML=""; return; }
+  if(!vis.length){ resultsEl.innerHTML='<li class="empty">No match for “'+esc(state.q)+'”. Try a state (e.g. Kerala), a tradition (e.g. Warli) or an artist.</li>'; }
+  else resultsEl.innerHTML=vis.slice(0,8).map(function(p){
+    return '<li><button type="button" role="option" data-pick="'+p.id+'"><span class="dot" style="background:'+color(p)+'"></span><span>'+esc(p.tradition)+'<small>'+esc(p.place)+', '+esc(p.state)+'</small></span></button></li>';
+  }).join("");
+  resultsEl.classList.toggle("open", document.activeElement===qInput || resultsEl.contains(document.activeElement));
+}
+qInput.addEventListener("input",function(){
+  state.q=qInput.value; searchBox.classList.toggle("has-q",!!state.q);
+  clearTimeout(qTimer);
+  var vis=applyFilters(false);
+  resultsEl.classList.toggle("open",!!state.q.trim());
+  qTimer=setTimeout(function(){ if(state.q.trim() && vis.length) fitVisible(true); },450);
+});
+qInput.addEventListener("focus",function(){ if(state.q.trim()) resultsEl.classList.add("open"); });
+qInput.addEventListener("keydown",function(e){
+  if(e.key==="Enter"){ e.preventDefault(); var v=visiblePlaces(); if(v.length){ pick(v[0].id); } }
+  if(e.key==="Escape"){ resultsEl.classList.remove("open"); }
+  if(e.key==="ArrowDown"){ var b=$("button",resultsEl); if(b){ e.preventDefault(); b.focus(); } }
+});
+resultsEl.addEventListener("keydown",function(e){
+  var btns=$$("button",resultsEl), i=btns.indexOf(document.activeElement);
+  if(e.key==="ArrowDown" && i<btns.length-1){ e.preventDefault(); btns[i+1].focus(); }
+  if(e.key==="ArrowUp"){ e.preventDefault(); if(i>0) btns[i-1].focus(); else qInput.focus(); }
+  if(e.key==="Escape"){ resultsEl.classList.remove("open"); qInput.focus(); }
+});
+document.addEventListener("click",function(e){ if(!e.target.closest("#searchBox")) resultsEl.classList.remove("open"); });
+$("#clearQ").addEventListener("click",function(){ qInput.value=""; state.q=""; searchBox.classList.remove("has-q"); applyFilters(true); qInput.focus(); });
+function pick(id){ resultsEl.classList.remove("open"); qInput.blur(); focusPlace(id,{keepFilters:true}); }
+
+/* ---------- filters ---------- */
+var filtersEl=$("#filters");
+filtersEl.innerHTML=FILTERS.map(function(f){ return '<button class="chip" data-filter="'+f[0]+'" aria-pressed="'+(f[0]==="all")+'">'+esc(f[1])+'</button>'; }).join("");
+function setFilter(key,fit){
+  state.filter=key;
+  $$(".chip",filtersEl).forEach(function(b){ b.setAttribute("aria-pressed", b.getAttribute("data-filter")===key); });
+  applyFilters(fit!==false);
+}
+filtersEl.addEventListener("click",function(e){ var b=e.target.closest("[data-filter]"); if(b) setFilter(b.getAttribute("data-filter")); });
+
+/* ---------- legend ---------- */
+(function legend(){
+  var html="";
+  Object.keys(CATS).forEach(function(k){ html+='<div class="legend-item">'+pinSVG(k)+'<span>'+esc(CATS[k].label)+'</span></div>'; });
+  html+='<div class="legend-item line"><svg viewBox="0 0 28 12" aria-hidden="true"><path d="M2 10 Q14 -4 26 10" fill="none" stroke="#A9843A" stroke-width="2.5" stroke-dasharray="4 4"/></svg><span>Influence link (optional)</span></div>';
+  $("#legend").insertAdjacentHTML("beforeend",html);
+})();
+
+/* ---------- routes toggle ---------- */
+function setRoutes(on){
+  routesOn=on;
+  $("#routesToggle").setAttribute("aria-pressed",on);
+  $("#routesToggle").lastChild.nodeValue = on ? " Hide influence links" : " Show influence links";
+  if(!map) return;
+  if(on){ routeLayer.addTo(map); } else { map.removeLayer(routeLayer); }
+}
+$("#routesToggle").addEventListener("click",function(){ setRoutes(!routesOn); });
+$("#routesBtn2").addEventListener("click",function(){
+  if(!map){ return; }
+  setFilter("all",false); qInput.value=""; state.q=""; searchBox.classList.remove("has-q"); applyFilters(false);
+  setRoutes(true); scrollToMap(function(){ fitVisible(true); });
+});
+
+/* ---------- focus a place ---------- */
+function scrollToMap(cb){
+  var sec=$("#map-section .map-frame");
+  var top=sec.getBoundingClientRect().top+window.pageYOffset-70;
+  var far=Math.abs(window.pageYOffset-top)>40;
+  window.scrollTo({top:top,behavior:"smooth"});
+  setTimeout(cb, far?550:50);
+}
+function focusPlace(id,opts){
+  var p=byId[id]; if(!p) return;
+  if(!map){ openModal(id); return; }
+  opts=opts||{};
+  if(!opts.keepFilters || !markerLayer.hasLayer(markers[id])){
+    if(!markerLayer.hasLayer(markers[id])){
+      setFilter("all",false); qInput.value=""; state.q=""; searchBox.classList.remove("has-q"); applyFilters(false);
+    }
+  }
+  map.closePopup();
+  scrollToMap(function(){
+    map.flyTo(p.coords,7,{duration:.9});
+    map.once("moveend",function(){ markers[id].openPopup(); });
+  });
+}
+
+function fitRegion(ids){
+  if(!map) return;
+  setFilter("all",false); qInput.value=""; state.q=""; searchBox.classList.remove("has-q"); applyFilters(false);
+  map.closePopup();
+  scrollToMap(function(){
+    var b=L.latLngBounds(ids.map(function(i){return byId[i].coords;}));
+    map.flyToBounds(b,{padding:[60,60],maxZoom:6.5,duration:.9});
+  });
+}
+
+/* =========================================================
+   CARDS
+   ========================================================= */
+(function cards(){
+  var featured=PLACES.filter(function(p){return p.featured;}), rest=PLACES.filter(function(p){return !p.featured;});
+  function card(p,extra){
+    return '<article class="card'+(extra?" extra":"")+'">'+imgBox(p)+
+      '<div class="card-body">'+catChip(p)+'<h3>'+esc(p.tradition)+'</h3>'+
+      '<p class="where">'+esc(p.place)+', '+esc(p.state)+'</p><p class="when">'+esc(p.period)+'</p>'+
+      '<p class="short">'+esc(p.short)+'</p>'+
+      '<div class="card-actions"><button class="btn sm" data-goto="'+p.id+'">Explore on Map</button><button class="btn sm ghost" data-detail="'+p.id+'">Details</button></div>'+
+      '</div></article>';
+  }
+  $("#cards").innerHTML=featured.map(function(p){return card(p,false);}).join("")+rest.map(function(p){return card(p,true);}).join("");
+  $("#moreBtn").addEventListener("click",function(){
+    var c=$("#cards"), on=!c.classList.contains("show-all");
+    c.classList.toggle("show-all",on);
+    this.setAttribute("aria-expanded",on);
+    this.textContent=on?"Show fewer":"Show all 15 traditions";
+    if(!on) $("#traditions").scrollIntoView({behavior:"smooth"});
+  });
+})();
+
+/* =========================================================
+   TIMELINE / FACTORS / ROUTES / REGIONS / STATS / SOURCES
+   ========================================================= */
+$("#tl").innerHTML=TIMELINE.map(function(t){
+  return '<li class="tl-item"><h3>'+esc(t.era)+'</h3><p class="tl-dates">'+esc(t.dates)+'</p><p>'+esc(t.text)+'</p><div class="link-row">'+t.links.map(gotoBtn).join("")+'</div></li>';
+}).join("");
+
+$("#factors").innerHTML=FACTORS.map(function(f){
+  return '<div class="factor"><h3>'+esc(f.t)+'</h3><p>'+esc(f.d)+'</p><div class="link-row">'+f.l.map(gotoBtn).join("")+'</div></div>';
+}).join("");
+
+$("#routeList").innerHTML=ROUTES.map(function(r){ return '<li class="route"><strong>'+esc(r.title)+'</strong><p>'+esc(r.text)+'</p></li>'; }).join("");
+
+$("#compass").innerHTML=REGIONS.map(function(r){
+  return '<div class="region r-'+r.key+'"><span class="dir" aria-hidden="true">'+r.dir+'</span><h3>'+esc(r.name)+'</h3><p>'+esc(r.text)+'</p><div class="link-row">'+r.ids.map(gotoBtn).join("")+'</div><button class="btn sm ghost" data-region="'+r.key+'">Show on map</button></div>';
+}).join("");
+
+(function stats(){
+  var periods=TIMELINE.length, cats=Object.keys(CATS).length;
+  var states={}; PLACES.forEach(function(p){ states[p.state]=1; });
+  var items=[[PLACES.length,"","Art heritage locations"],[cats,"+","Art categories"],[periods,"+","Historical periods"],[null,"Pan-India","Cultural coverage · "+Object.keys(states).length+" states & UTs"]];
+  $("#stats").innerHTML=items.map(function(s){
+    return '<div class="stat"><b'+(s[0]!==null?' data-count="'+s[0]+'" data-suffix="'+s[1]+'"':'')+'>'+(s[0]!==null?s[0]+s[1]:s[1])+'</b><span>'+esc(s[2])+'</span></div>';
+  }).join("");
+  var els=$$("[data-count]");
+  if(!("IntersectionObserver" in window) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  els.forEach(function(el){ el.textContent="0"+el.getAttribute("data-suffix"); });
+  var io=new IntersectionObserver(function(ents){
+    ents.forEach(function(en){
+      if(!en.isIntersecting) return; io.unobserve(en.target);
+      var el=en.target, end=+el.getAttribute("data-count"), suf=el.getAttribute("data-suffix"), t0=null;
+      function step(ts){ if(!t0) t0=ts; var k=Math.min(1,(ts-t0)/900); el.textContent=Math.round(end*(1-Math.pow(1-k,3)))+suf; if(k<1) requestAnimationFrame(step); }
+      requestAnimationFrame(step);
+    });
+  },{threshold:.4});
+  els.forEach(function(el){ io.observe(el); });
+})();
+
+$("#wikiSources").innerHTML=PLACES.map(function(p){
+  return '<li><a href="'+wikiUrl(p.wiki[0])+'" target="_blank" rel="noopener">'+esc(p.wiki[0])+'</a> — Wikipedia<small>'+esc(p.tradition)+', '+esc(p.state)+'</small></li>';
+}).join("");
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+var modal=$("#modal"), mContent=$("#mContent"), lastFocus=null, currentId=null;
+function openModal(id){
+  var p=byId[id]; if(!p) return;
+  currentId=id;
+  var idx=PLACES.indexOf(p), prev=PLACES[(idx-1+PLACES.length)%PLACES.length], next=PLACES[(idx+1)%PLACES.length];
+  mContent.innerHTML=imgBox(p)+
+  '<p class="m-credit" data-credit="'+p.id+'"></p>'+
+  '<div class="m-body">'+catChip(p)+
+    '<h2 id="mTitle">'+esc(p.tradition)+'</h2>'+
+    '<dl class="facts">'+
+      '<div><dt>Location</dt><dd>'+esc(p.place)+'</dd></div>'+
+      '<div><dt>State</dt><dd>'+esc(p.state)+'</dd></div>'+
+      '<div><dt>Region</dt><dd>'+esc(p.region)+' India</dd></div>'+
+      '<div><dt>Period</dt><dd>'+esc(p.period)+'</dd></div>'+
+    '</dl>'+
+    '<div class="m-sec"><h3>About this tradition</h3><p>'+esc(p.context)+'</p>'+p.details.map(function(d){return '<p>'+esc(d)+'</p>';}).join("")+'</div>'+
+    '<div class="m-sec"><h3>Important artworks &amp; examples</h3><ul>'+p.examples.map(function(e){return '<li>'+esc(e)+'</li>';}).join("")+'</ul></div>'+
+    '<div class="m-sec"><h3>Cultural significance</h3><p>'+esc(p.significance)+'</p></div>'+
+    '<div class="m-sec"><h3>Why this location matters</h3><p>'+esc(p.why)+'</p></div>'+
+    '<div class="m-sec"><h3>Geographic influence</h3><p>'+esc(p.influence)+'</p></div>'+
+    (p.people.length?'<div class="m-sec"><h3>Artists &amp; patrons</h3><p>'+p.people.map(esc).join(", ")+'</p></div>':'')+
+    '<div class="m-sec"><p><a href="'+wikiUrl(p.wiki[0])+'" target="_blank" rel="noopener">Read more: '+esc(p.wiki[0])+' (Wikipedia)</a></p></div>'+
+    '<div class="m-actions">'+(map?'<button class="btn sm" data-showmap="'+p.id+'">Show on map</button>':'')+
+      '<div class="m-nav"><button class="btn sm ghost" data-detail="'+prev.id+'" aria-label="Previous: '+esc(prev.tradition)+'">← Previous</button><button class="btn sm ghost" data-detail="'+next.id+'" aria-label="Next: '+esc(next.tradition)+'">Next →</button></div>'+
+    '</div>'+
+  '</div>';
+  applyImages(mContent);
+  if(!modal.classList.contains("open")){
+    lastFocus=document.activeElement;
+    modal.classList.add("open"); modal.setAttribute("aria-hidden","false");
+    document.body.classList.add("lock");
+  }
+  var panel=$("#modalPanel"); panel.scrollTop=0; panel.focus({preventScroll:true});
+}
+function closeModal(){
+  modal.classList.remove("open"); modal.setAttribute("aria-hidden","true");
+  document.body.classList.remove("lock");
+  if(lastFocus && lastFocus.focus) try{ lastFocus.focus({preventScroll:true}); }catch(e){}
+}
+modal.addEventListener("click",function(e){ if(e.target.closest("[data-close]")) closeModal(); });
+document.addEventListener("keydown",function(e){
+  if(!modal.classList.contains("open")) return;
+  if(e.key==="Escape") closeModal();
+  if(e.key==="Tab"){
+    var f=$$('button,a[href]',$("#modalPanel")).filter(function(el){return el.offsetParent!==null;});
+    if(!f.length) return;
+    if(e.shiftKey && document.activeElement===f[0]){ e.preventDefault(); f[f.length-1].focus(); }
+    else if(!e.shiftKey && document.activeElement===f[f.length-1]){ e.preventDefault(); f[0].focus(); }
+  }
+});
+
+/* =========================================================
+   GLOBAL CLICK DELEGATION
+   ========================================================= */
+document.addEventListener("click",function(e){
+  var t;
+  if((t=e.target.closest("[data-detail]"))){ e.preventDefault(); openModal(t.getAttribute("data-detail")); return; }
+  if((t=e.target.closest("[data-showmap]"))){ var id=t.getAttribute("data-showmap"); closeModal(); focusPlace(id); return; }
+  if((t=e.target.closest("[data-goto]"))){ focusPlace(t.getAttribute("data-goto")); return; }
+  if((t=e.target.closest("[data-pick]"))){ pick(t.getAttribute("data-pick")); return; }
+  if((t=e.target.closest("[data-region]"))){ var key=t.getAttribute("data-region"); var r=REGIONS.filter(function(x){return x.key===key;})[0]; if(r){ if(map) fitRegion(r.ids); else $("#traditions").scrollIntoView({behavior:"smooth"}); } return; }
+});
+
+/* =========================================================
+   START
+   ========================================================= */
+loadImages();
+ensureLeaflet().then(function(ok){
+  if(ok){ initMap(); } else { showMapFallback(); }
+  applyFilters(false);
+});
+
+})();
+</script>
+</body>
+</html>
